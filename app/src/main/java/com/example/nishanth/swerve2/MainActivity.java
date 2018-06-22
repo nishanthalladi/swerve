@@ -5,10 +5,16 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
@@ -25,6 +31,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         kenny = findViewById(R.id.imageView);
         kenny.setX(500);
         kenny.setY(1000);
+
+        ConstraintLayout layout = findViewById(R.id.layout);
+        layout.setMaxHeight(2500);
+        layout.setMaxWidth(1500);
+
+        ArrayList<Fireball> fireballs = new ArrayList<>();
+        for (int i =0 ;i<5 ;i++) {
+            fireballs.add(new Fireball(getApplicationContext()));
+            layout.addView(fireballs.get(i));
+            fireballs.get(i).setX((float) (Math.random()*layout.getMaxWidth()));
+            fireballs.get(i).setY((float) (Math.random()*layout.getMaxHeight()));
+        }
+
+
+
     }
 
     @Override
@@ -34,9 +55,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
+    public void onAccuracyChanged(Sensor sensor, int i) {}
     @Override
     public boolean onTouchEvent(MotionEvent event){
         int action = event.getActionMasked();
