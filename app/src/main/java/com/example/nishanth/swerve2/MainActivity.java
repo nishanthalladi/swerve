@@ -34,13 +34,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ConstraintLayout layout;
     private ProgressBar health;
     private int score;
-
+    private float speed=20;
+    final int NUM_FIREBALLS = 4;
+    private Coin coin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
         kenny = findViewById(R.id.imageView);
         kenny.setX(500);
         kenny.setY(1000);
@@ -50,17 +52,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         layout.setMaxHeight(2500);
         layout.setMaxWidth(1500);
 
-        for (int i =0 ;i<5 ;i++) {
+        for (int i =0 ;i<NUM_FIREBALLS ;i++) {
             fireballs.add(new Fireball(getApplicationContext()));
             layout.addView(fireballs.get(i));
             fireballs.get(i).setX((float) (Math.random()*layout.getMaxWidth()-50));
-            fireballs.get(i).setY((float) (Math.random()*layout.getMaxHeight()-200));
+            fireballs.get(i).setY((float) (Math.random()*layout.getMaxHeight()));
+            fireballs.get(i).setY(fireballs.get(i).getY()-9000);
         }
+
+        coin = new Coin(getApplicationContext());
+        layout.addView(coin);
+        coin.setX((float) (Math.random()*layout.getMaxWidth()-50));
+        coin.setY(-15000);
+
 
         health = findViewById(R.id.progressBar);
         health.bringToFront();
-        health.setMax(500);
-        health.setProgress(500);
+        health.setMax(250);
+        health.setProgress(250);
 
         heart = findViewById(R.id.imageView2);
         heart.bringToFront();
@@ -82,16 +91,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void check() {
         if (health.getProgress()<=0){
-            Intent i = new Intent(this, EndActivity.class);
-            i.putExtra("score",score/10000.0);
-            startActivity(i);
+            die();
         }
         if (touching()) {
-            health.setProgress(health.getProgress()-1);
+            health.setProgress(health.getProgress()-10);
             kenny.setColorFilter(Color.RED);
             return;
         }
+        if (coin()) {
+            health.setProgress(health.getProgress()+20);
+            kenny.setColorFilter(Color.GREEN);
+            return;
+        }
         kenny.clearColorFilter();
+    }
+
+    private boolean coin() {
+        Rect kenR = new Rect();
+        kenny.getHitRect(kenR);
+        kenR.set(kenR.left+2,kenR.top+2,kenR.right-2,kenR.bottom-2);
+        Rect coinR = new Rect();
+        coin.getHitRect(coinR);
+        if (Rect.intersects(kenR,coinR)) {
+            init(coin);
+            return true;
+        }
+        return false;
+    }
+
+    private void die() {
+        timer.cancel();
+        Intent i = new Intent(this, EndActivity.class);
+        i.putExtra("score",score/10.0);
+        startActivity(i);
     }
 
     public boolean touching() {
@@ -105,22 +137,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         kenny.getHitRect(kenR);
         kenR.set(kenR.left+2,kenR.top+2,kenR.right-2,kenR.bottom-2);
         for (Rect r:rects) {
-            if (Rect.intersects(kenR,r))
+            if (Rect.intersects(kenR,r)) {
+                init(fireballs.get(rects.indexOf(r)));
                 return true;
+            }
         }
         return false;
     }
 
-    private void init(Fireball f) {
-        f.setX((float) (Math.random()*layout.getMaxWidth()));
+    private void init(ImageView f) {
+        f.setX((float) (Math.random()*layout.getMaxWidth()-50));
         f.setY(-100);
+        if (f.toString().equals("coin"))
+            f.setY(-1000*speed);
     }
 
     private void drop() {
         if (kenny.getX() < 0 || kenny.getX()+kenny.getWidth() > layout.getMaxWidth() || kenny.getY()>layout.getMaxHeight())
             health.setProgress(health.getProgress()-1);
         for (Fireball f : fireballs) {
-            f.setY(f.getY()+20);
+            f.setY(f.getY()+speed);
             if (f.getY()>layout.getMaxHeight()) {
                 init(f);
                 if (f.equals(fireballs.get(0))) {
@@ -128,31 +164,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         }
+        coin.setY(coin.getY()+speed+5);
+        if (coin.getY()>layout.getMaxHeight()) {
+            init(coin);
+        }
         score++;
+        speed+=1E-3;
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        kenny.setY(kenny.getY()+sensorEvent.values[1]*3);
+        kenny.setY(kenny.getY()+sensorEvent.values[1]*15);
         kenny.setX(kenny.getX()+sensorEvent.values[0]*-20);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {}
     @Override
-    public boolean onTouchEvent(MotionEvent event){
-        int action = event.getActionMasked();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                kenny.setY(event.getRawY()-200);
-                kenny.setX(event.getRawX()-200);
-                return true;
-            case MotionEvent.ACTION_UP:
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                return true;
-            default:
-                return super.onTouchEvent(event);
-        }
+    public boolean onTouchEvent(MotionEvent event) {
+//        int action = event.getActionMasked();
+//        switch (action) {
+//            case MotionEvent.ACTION_DOWN:
+//                kenny.setY(event.getRawY() - 200);
+//                kenny.setX(event.getRawX() - 200);
+//                return true;
+//            case MotionEvent.ACTION_UP:
+//                return true;
+//            case MotionEvent.ACTION_MOVE:
+//                return true;
+//            default:
+//                return super.onTouchEvent(event);
+//
+        //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
+        return false;
     }
 }

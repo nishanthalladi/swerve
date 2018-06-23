@@ -11,7 +11,15 @@ import android.widget.LinearLayout;
 public class Fireball extends android.support.v7.widget.AppCompatImageView {
     public Fireball(Context context) {
         super(context);
-        setImageResource(R.drawable.fireball);
+        if (Math.random()<(1.0/3)){
+            setImageResource(R.drawable.box);
+        }
+        else if (Math.random()<(2.0/3)){
+            setImageResource(R.drawable.table);
+        }
+        else{
+            setImageResource(R.drawable.dresser);
+        }
     }
 
     @Override

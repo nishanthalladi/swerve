@@ -9,9 +9,9 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="75dp"
-        android:layout_height="81dp"
-        app:srcCompat="@drawable/wizard"
+        android:layout_width="70dp"
+        android:layout_height="75dp"
+        app:srcCompat="@drawable/ghost"
         tools:layout_editor_absoluteX="155dp"
         tools:layout_editor_absoluteY="215dp" />
 
