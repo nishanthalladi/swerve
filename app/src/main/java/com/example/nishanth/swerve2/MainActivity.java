@@ -2,6 +2,7 @@ package com.example.nishanth.swerve2;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.Sensor;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -26,23 +28,32 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
     private SensorManager mSensorManager;
-    private Sensor mSensor;
-    private ImageView kenny, heart;
+    private ImageView kenny, heart, play;
     private Handler handler = new Handler();
     private Timer timer = new Timer();
     private ArrayList<Fireball> fireballs = new ArrayList<>();
     private ConstraintLayout layout;
     private ProgressBar health;
     private int score;
-    private float speed=20;
+    private float speed=30;
     final int NUM_FIREBALLS = 4;
     private Coin coin;
+    private boolean playing = true;
+    private SharedPreferences reader;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        View decorView = getWindow().getDecorView();
+        // Hide the status bar.
+        int uiOptions = 0;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+        }
+        decorView.setSystemUiVisibility(uiOptions);
+        reader = getApplicationContext().getSharedPreferences("Preferences", MODE_PRIVATE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
         kenny = findViewById(R.id.imageView);
         kenny.setX(500);
         kenny.setY(1000);
@@ -50,14 +61,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         layout = findViewById(R.id.layout);
         layout.setMinHeight(-10);
         layout.setMaxHeight(2500);
-        layout.setMaxWidth(1500);
+        layout.setMaxWidth(1450);
 
         for (int i =0 ;i<NUM_FIREBALLS ;i++) {
             fireballs.add(new Fireball(getApplicationContext()));
             layout.addView(fireballs.get(i));
             fireballs.get(i).setX((float) (Math.random()*layout.getMaxWidth()-50));
             fireballs.get(i).setY((float) (Math.random()*layout.getMaxHeight()));
-            fireballs.get(i).setY(fireballs.get(i).getY()-9000);
+            fireballs.get(i).setY(fireballs.get(i).getY()-3000);
         }
 
         coin = new Coin(getApplicationContext());
@@ -74,22 +85,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         heart = findViewById(R.id.imageView2);
         heart.bringToFront();
 
+        play = findViewById(R.id.imageView5);
+        play.setVisibility(View.GONE);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        check();
-                        drop();
-                    }
+                handler.post(() -> {
+                    check();
+                    drop();
                 });
             }
-        },0,10);
+        },0,20);
     }
 
     private void check() {
+        if (!playing)
+            return;
         if (health.getProgress()<=0){
             die();
         }
@@ -99,11 +113,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return;
         }
         if (coin()) {
-            health.setProgress(health.getProgress()+20);
+            health.setProgress(health.getProgress()+50);
             kenny.setColorFilter(Color.GREEN);
             return;
         }
         kenny.clearColorFilter();
+
     }
 
     private boolean coin() {
@@ -153,8 +168,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void drop() {
-        if (kenny.getX() < 0 || kenny.getX()+kenny.getWidth() > layout.getMaxWidth() || kenny.getY()>layout.getMaxHeight())
-            health.setProgress(health.getProgress()-1);
+        if (!playing)
+            return;
+        if (kenny.getX() < 0)
+            kenny.setX(0);
+        if (kenny.getX()+kenny.getWidth() > layout.getMaxWidth())
+            kenny.setX(layout.getMaxWidth()-kenny.getWidth());
+        if (kenny.getY()+kenny.getHeight()>layout.getMaxHeight())
+            kenny.setY(layout.getMaxHeight()-kenny.getHeight());
+        if (kenny.getY()<0)
+            kenny.setY(0);
+
         for (Fireball f : fireballs) {
             f.setY(f.getY()+speed);
             if (f.getY()>layout.getMaxHeight()) {
@@ -164,38 +188,62 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         }
-        coin.setY(coin.getY()+speed+5);
+        coin.setY(coin.getY()+speed*1.5f);
         if (coin.getY()>layout.getMaxHeight()) {
             init(coin);
         }
         score++;
-        speed+=1E-3;
+        speed+=5E-3;
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        kenny.setY(kenny.getY()+sensorEvent.values[1]*15);
-        kenny.setX(kenny.getX()+sensorEvent.values[0]*-20);
+        if (!playing)
+            return;
+        kenny.setY(kenny.getY()+sensorEvent.values[1]*2*(reader.getInt("sensitivity", 10)));
+        kenny.setX(kenny.getX()+sensorEvent.values[0]*-2*reader.getInt("sensitivity", 10));
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {}
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-//        int action = event.getActionMasked();
-//        switch (action) {
-//            case MotionEvent.ACTION_DOWN:
-//                kenny.setY(event.getRawY() - 200);
-//                kenny.setX(event.getRawX() - 200);
-//                return true;
-//            case MotionEvent.ACTION_UP:
-//                return true;
-//            case MotionEvent.ACTION_MOVE:
-//                return true;
-//            default:
-//                return super.onTouchEvent(event);
-//
-        //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
-        return false;
+        int action = event.getActionMasked();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                if (playing){
+                    play.setVisibility(View.VISIBLE);
+                }
+                else {
+                    play.setVisibility(View.GONE);
+                }
+                playing = !playing;
+                return true;
+            case MotionEvent.ACTION_UP:
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                return true;
+            default:
+                return super.onTouchEvent(event);
+
+            //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
+//        }
+            //return true;
+        }
+    }
+
+    private void calm() {
+        for (Fireball f : fireballs) {
+            f.setX(f.getX());
+            f.setY(f.getY()-20);
+        }
+        kenny.setX(kenny.getX());
+        kenny.setY(kenny.getY());
+    }
+
+    @Override
+    public void onBackPressed() {
+        timer.cancel();
+        startActivity(new Intent(this, HomePage.class));
     }
 }
