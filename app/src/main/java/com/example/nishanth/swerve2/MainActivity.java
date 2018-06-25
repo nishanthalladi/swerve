@@ -34,9 +34,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ArrayList<Fireball> fireballs = new ArrayList<>();
     private ConstraintLayout layout;
     private ProgressBar health;
-    private int score;
-    private float speed=30;
-    final int NUM_FIREBALLS = 4;
+    private int score, flashTime;
+    private float speed=2;
+    final int NUM_FIREBALLS = 5, FLASH=50;
     private Coin coin;
     private boolean playing = true;
     private SharedPreferences reader;
@@ -55,12 +55,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
         kenny = findViewById(R.id.imageView);
+        kenny.setImageResource(reader.getInt("character",R.drawable.banana));
         kenny.setX(500);
         kenny.setY(1000);
 
         layout = findViewById(R.id.layout);
         layout.setMinHeight(-10);
-        layout.setMaxHeight(2500);
+        layout.setMaxHeight(2555);
         layout.setMaxWidth(1450);
 
         for (int i =0 ;i<NUM_FIREBALLS ;i++) {
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     drop();
                 });
             }
-        },0,20);
+        },0, 1);
     }
 
     private void check() {
@@ -107,17 +108,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (health.getProgress()<=0){
             die();
         }
+        if (flashTime<=0)
+            kenny.clearColorFilter();
         if (touching()) {
             health.setProgress(health.getProgress()-10);
             kenny.setColorFilter(Color.RED);
-            return;
+            flashTime=FLASH;
         }
         if (coin()) {
             health.setProgress(health.getProgress()+50);
             kenny.setColorFilter(Color.GREEN);
-            return;
+            flashTime=FLASH;
         }
-        kenny.clearColorFilter();
+        flashTime--;
 
     }
 
@@ -137,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void die() {
         timer.cancel();
         Intent i = new Intent(this, EndActivity.class);
-        i.putExtra("score",score/10.0);
+        i.putExtra("score",score/100.0);
         startActivity(i);
     }
 
@@ -162,22 +165,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void init(ImageView f) {
         f.setX((float) (Math.random()*layout.getMaxWidth()-50));
-        f.setY(-100);
+        f.setY((float) (-1000 - Math.random()*500));
         if (f.toString().equals("coin"))
-            f.setY(-1000*speed);
+            f.setY(-16000*speed);
     }
 
     private void drop() {
         if (!playing)
             return;
-        if (kenny.getX() < 0)
-            kenny.setX(0);
-        if (kenny.getX()+kenny.getWidth() > layout.getMaxWidth())
-            kenny.setX(layout.getMaxWidth()-kenny.getWidth());
-        if (kenny.getY()+kenny.getHeight()>layout.getMaxHeight())
-            kenny.setY(layout.getMaxHeight()-kenny.getHeight());
-        if (kenny.getY()<0)
-            kenny.setY(0);
 
         for (Fireball f : fireballs) {
             f.setY(f.getY()+speed);
@@ -188,58 +183,59 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         }
-        coin.setY(coin.getY()+speed*1.5f);
+        coin.setY(coin.getY()+speed*1.3f);
         if (coin.getY()>layout.getMaxHeight()) {
             init(coin);
         }
         score++;
-        speed+=5E-3;
+        speed+=8E-6;
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (!playing)
             return;
+        if (kenny.getX() < 0)
+            kenny.setX(0);
+        if (kenny.getX()+kenny.getWidth() > layout.getMaxWidth())
+            kenny.setX(layout.getMaxWidth()-kenny.getWidth());
+        if (kenny.getY()+kenny.getHeight()>layout.getMaxHeight())
+            kenny.setY(layout.getMaxHeight()-kenny.getHeight());
+        if (kenny.getY()<0)
+            kenny.setY(0);
         kenny.setY(kenny.getY()+sensorEvent.values[1]*2*(reader.getInt("sensitivity", 10)));
-        kenny.setX(kenny.getX()+sensorEvent.values[0]*-2*reader.getInt("sensitivity", 10));
+        kenny.setX(kenny.getX()+sensorEvent.values[0]*-2*(reader.getInt("sensitivity", 10)));
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {}
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int action = event.getActionMasked();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                if (playing){
-                    play.setVisibility(View.VISIBLE);
-                }
-                else {
-                    play.setVisibility(View.GONE);
-                }
-                playing = !playing;
-                return true;
-            case MotionEvent.ACTION_UP:
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                return true;
-            default:
-                return super.onTouchEvent(event);
-
-            //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
+//        int action = event.getActionMasked();
+//        switch (action) {
+//            case MotionEvent.ACTION_DOWN:
+//                if (playing){
+//                    play.setVisibility(View.VISIBLE);
+//                }
+//                else {
+//                    play.setVisibility(View.GONE);
+//                }
+//                playing = !playing;
+//                return true;
+//            case MotionEvent.ACTION_UP:
+//                return true;
+//            case MotionEvent.ACTION_MOVE:
+//                return true;
+//            default:
+//                return super.onTouchEvent(event);
+//
+//            //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
+////        }
+//            //return true;
 //        }
-            //return true;
-        }
+        return true;
     }
 
-    private void calm() {
-        for (Fireball f : fireballs) {
-            f.setX(f.getX());
-            f.setY(f.getY()-20);
-        }
-        kenny.setX(kenny.getX());
-        kenny.setY(kenny.getY());
-    }
 
     @Override
     public void onBackPressed() {

@@ -17,6 +17,9 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+
 public class Settings extends AppCompatActivity implements SensorEventListener {
 
     SharedPreferences.Editor editor;
@@ -24,6 +27,9 @@ public class Settings extends AppCompatActivity implements SensorEventListener {
     ImageView kenny;
     ConstraintLayout layout;
     SensorManager mSensorManager;
+    LinkedList<Integer> characters;
+    HashMap<String,Integer> map;
+    int index=0;
     @SuppressLint("CommitPrefEdits")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,16 +48,41 @@ public class Settings extends AppCompatActivity implements SensorEventListener {
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
 
         kenny = findViewById(R.id.imageView3);
+
         kenny.setY(1000);
         kenny.setX(500);
 
+        characters = new LinkedList<>();
+        characters.add(R.drawable.banana);
+        characters.add(R.drawable.glasses);
+        characters.add(R.drawable.box);
+        characters.add(R.drawable.coin);
+        characters.add(R.drawable.dresser);
+        characters.add(R.drawable.ghost);
+        characters.add(R.drawable.gem);
+        characters.add(R.drawable.heart_pixel);
+        characters.add(R.drawable.wizard);
 
-        TextView a = findViewById(R.id.textView7), b = findViewById(R.id.textView8);
+        map = new HashMap<>();
+        map.put("banana",R.drawable.banana);
+        map.put("glasses",R.drawable.glasses);
+        map.put("box",R.drawable.box);
+        map.put("coin",R.drawable.coin);
+        map.put("dresser",R.drawable.dresser);
+        map.put("ghost",R.drawable.ghost);
+        map.put("gem",R.drawable.gem);
+        map.put("heart_pixel",R.drawable.heart_pixel);
+        map.put("wizard",R.drawable.wizard);
+
+
+        TextView a = findViewById(R.id.textView7), b = findViewById(R.id.textView8),
+                c= findViewById(R.id.textView10), left = findViewById(R.id.textView12), right = findViewById(R.id.textView13);
         Typeface fipps = Typeface.createFromAsset(getAssets(),"fipps.otf");
-        a.setTypeface(fipps);
-        b.setTypeface(fipps);
+        a.setTypeface(fipps);b.setTypeface(fipps);c.setTypeface(fipps);left.setTypeface(fipps);right.setTypeface(fipps);
 
         SharedPreferences preferences = getApplicationContext().getSharedPreferences("Preferences", MODE_PRIVATE);
+
+        kenny.setImageResource(preferences.getInt("character",R.drawable.banana));
 
         bar = findViewById(R.id.seekBar);
         bar.setMax(9);
@@ -90,5 +121,31 @@ public class Settings extends AppCompatActivity implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+    public void right(View view) {
+        index = (index+1)%characters.size();
+        kenny.setImageResource(characters.get(index));
+        kenny.invalidate();
+        for (Integer s : map.values()) {
+            if (s.equals(characters.get(index))) {
+                editor.putInt("character", s);
+                break;
+            }
+        }
+    }
+
+    public void left(View view) {
+        index--;
+        if (index<0)
+            index=characters.size()-1;
+        kenny.setImageResource(characters.get(index));
+        kenny.invalidate();
+        for (Integer s : map.values()) {
+            if (s.equals(characters.get(index))) {
+                editor.putInt("character", s);
+                break;
+            }
+        }
     }
 }
