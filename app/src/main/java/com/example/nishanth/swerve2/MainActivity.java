@@ -3,6 +3,7 @@ package com.example.nishanth.swerve2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.Sensor;
@@ -61,8 +62,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         layout = findViewById(R.id.layout);
         layout.setMinHeight(-10);
-        layout.setMaxHeight(2555);
-        layout.setMaxWidth(1450);
+        layout.setMaxHeight(Resources.getSystem().getDisplayMetrics().heightPixels );
+        layout.setMaxWidth(Resources.getSystem().getDisplayMetrics().widthPixels);
 
         for (int i =0 ;i<NUM_FIREBALLS ;i++) {
             fireballs.add(new Fireball(getApplicationContext()));
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             init(coin);
         }
         score++;
-        speed+=8E-6;
+        speed+=1.5E-5;
     }
 
     @Override

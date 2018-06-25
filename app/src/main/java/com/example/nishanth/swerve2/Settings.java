@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -75,10 +76,15 @@ public class Settings extends AppCompatActivity implements SensorEventListener {
         map.put("wizard",R.drawable.wizard);
 
 
-        TextView a = findViewById(R.id.textView7), b = findViewById(R.id.textView8),
-                c= findViewById(R.id.textView10), left = findViewById(R.id.textView12), right = findViewById(R.id.textView13);
+        TextView sensitivity = findViewById(R.id.textView7), home = findViewById(R.id.textView8),
+                characterselect= findViewById(R.id.textView10), left = findViewById(R.id.textView12), right = findViewById(R.id.textView13);
         Typeface fipps = Typeface.createFromAsset(getAssets(),"fipps.otf");
-        a.setTypeface(fipps);b.setTypeface(fipps);c.setTypeface(fipps);left.setTypeface(fipps);right.setTypeface(fipps);
+        sensitivity.setTypeface(fipps);home.setTypeface(fipps);characterselect.setTypeface(fipps);left.setTypeface(fipps);right.setTypeface(fipps);
+        sensitivity.setWidth(Resources.getSystem().getDisplayMetrics().widthPixels );
+        characterselect.setWidth(Resources.getSystem().getDisplayMetrics().widthPixels );
+
+
+
 
         SharedPreferences preferences = getApplicationContext().getSharedPreferences("Preferences", MODE_PRIVATE);
 
@@ -86,7 +92,7 @@ public class Settings extends AppCompatActivity implements SensorEventListener {
 
         bar = findViewById(R.id.seekBar);
         bar.setMax(9);
-        bar.setProgress(preferences.getInt("sensitivity", 4));
+        bar.setProgress(preferences.getInt("sensitivity", 0));
 
         editor = preferences.edit();
 
