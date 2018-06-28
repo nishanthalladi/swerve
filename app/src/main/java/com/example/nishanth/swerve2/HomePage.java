@@ -13,13 +13,18 @@ public class HomePage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
+
         View decorView = getWindow().getDecorView();
-        // Hide the status bar.
-        int uiOptions = 0;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-        }
-        decorView.setSystemUiVisibility(uiOptions);
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
         Typeface fipps = Typeface.createFromAsset(getAssets(), "fipps.otf");
         TextView b = findViewById(R.id.textView4), p = findViewById(R.id.textView5), s = findViewById(R.id.textView9);

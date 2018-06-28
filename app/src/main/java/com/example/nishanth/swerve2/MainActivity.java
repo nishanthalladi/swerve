@@ -6,10 +6,14 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -20,9 +24,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,34 +45,59 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ConstraintLayout layout;
     private ProgressBar health;
     private int score, flashTime;
-    private float speed=2;
+    private float speed=3.5f;
     final int NUM_FIREBALLS = 5, FLASH=50;
     private Coin coin;
-    private boolean playing = true;
+    private boolean playing = true, counting = false, soundplaying = false;
     private SharedPreferences reader;
+    private SharedPreferences.Editor editor;
+    private TextView count;
+    private MediaPlayer coinsound, hitsound;
+    private Queue<MediaPlayer> sounds;
+    private float MAX_VOLUME = 10;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        coinsound = MediaPlayer.create(getApplicationContext(), R.raw.coinsound);
+        hitsound = MediaPlayer.create(getApplicationContext(), R.raw.hitsound);
+
+//        coinsound.setAudioStreamType(AudioManager.FX_KEY_CLICK);
+//        hitsound.setAudioStreamType(AudioManager.FX_KEY_CLICK);
+
+        sounds = new LinkedList<>();
+
         View decorView = getWindow().getDecorView();
-        // Hide the status bar.
-        int uiOptions = 0;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-        }
-        decorView.setSystemUiVisibility(uiOptions);
-        reader = getApplicationContext().getSharedPreferences("Preferences", MODE_PRIVATE);
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
-        kenny = findViewById(R.id.imageView);
-        kenny.setImageResource(reader.getInt("character",R.drawable.banana));
-        kenny.setX(500);
-        kenny.setY(1000);
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
         layout = findViewById(R.id.layout);
         layout.setMinHeight(-10);
         layout.setMaxHeight(Resources.getSystem().getDisplayMetrics().heightPixels );
         layout.setMaxWidth(Resources.getSystem().getDisplayMetrics().widthPixels);
+
+        reader = getApplicationContext().getSharedPreferences("Preferences", MODE_PRIVATE);
+        editor = reader.edit();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+
+        kenny = findViewById(R.id.imageView);
+        kenny.setImageResource(reader.getInt("character",R.drawable.banana));
+        kenny.setX(layout.getMaxWidth()/2);
+        kenny.setY(layout.getMaxHeight()/2);
+
+
+
 
         for (int i =0 ;i<NUM_FIREBALLS ;i++) {
             fireballs.add(new Fireball(getApplicationContext()));
@@ -87,11 +121,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         heart = findViewById(R.id.imageView2);
         heart.bringToFront();
 
-        play = findViewById(R.id.imageView5);
+        play = findViewById(R.id.imageView4);
         play.setVisibility(View.GONE);
+        play.bringToFront();
 
+        count = findViewById(R.id.textView14);
+        count.setTypeface(Typeface.createFromAsset(getAssets(), "fipps.otf"));
+        count.bringToFront();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+//        if (!reader.getBoolean("playing",false) && reader.getInt("health",health.getMax())!=0 ){
+//            for (int i =0; i<fireballs.size(); i++) {
+//                fireballs.get(i).setY(Float.parseFloat(reader.getStringSet("fireball"+i,fireballs.get(i).getCoords()).toArray(new String[0])[0]));
+//                fireballs.get(i).setX(Float.parseFloat(reader.getStringSet("fireball"+i,fireballs.get(i).getCoords()).toArray(new String[0])[1]));
+//            }
+//            coin.setY(Float.parseFloat(reader.getStringSet("coin",coin.getCoords()).toArray(new String[0])[0]));
+//            coin.setX(Float.parseFloat(reader.getStringSet("coin",coin.getCoords()).toArray(new String[0])[1]));
+//
+//            health.setProgress(reader.getInt("health",health.getMax()));
+//            speed = reader.getFloat("speed",speed);
+//        }
+
+        countdown();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -112,16 +163,47 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (flashTime<=0)
             kenny.clearColorFilter();
         if (touching()) {
+            if (reader.getFloat("volume",MAX_VOLUME) >0) {
+                MediaPlayer hitsound = MediaPlayer.create(getApplicationContext(), R.raw.hitsound);
+                float log1 = (float) (Math.log(MAX_VOLUME - reader.getFloat("volume", MAX_VOLUME)) / Math.log(MAX_VOLUME));
+                hitsound.setVolume((1 - log1) / 2, (1 - log1) / 2);
+                hitsound.start();
+                hitsound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        mp.release();
+                        mp = null;
+                    }
+                });
+            }
             health.setProgress(health.getProgress()-10);
             kenny.setColorFilter(Color.RED);
             flashTime=FLASH;
         }
         if (coin()) {
+            if (reader.getFloat("volume",MAX_VOLUME) >0) {
+                MediaPlayer coinsound = MediaPlayer.create(getApplicationContext(), R.raw.coinsound);
+                float log1=(float)(Math.log(MAX_VOLUME-reader.getFloat("volume",MAX_VOLUME))/Math.log(MAX_VOLUME));
+                coinsound.setVolume((1-log1)/2, (1-log1)/2);
+                coinsound.start();
+                coinsound.setOnCompletionListener(mp -> {
+                    mp.release();
+                    mp = null;
+                });
+            }
             health.setProgress(health.getProgress()+50);
             kenny.setColorFilter(Color.GREEN);
             flashTime=FLASH;
         }
         flashTime--;
+
+    }
+
+    private void playsound(MediaPlayer mediaPlayer) {
+//        sounds.add(mediaPlayer);
+//        while (!sounds.isEmpty()) {
+//            sounds.remove().start();
+//        }
 
     }
 
@@ -208,39 +290,98 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         kenny.setX(kenny.getX()+sensorEvent.values[0]*-2*(reader.getInt("sensitivity", 10)));
     }
 
+    public void pause() {
+        playing = false;
+        play.setVisibility(View.VISIBLE);
+        //savegamestate();
+
+    }
+
+    public void unpause() {
+        play.setVisibility(View.GONE);
+        countdown();
+        //savegamestate();
+    }
+    private void savegamestate() {
+        editor.putBoolean("playing", playing);
+        for (int i=0; i<fireballs.size(); i++) {
+            editor.putStringSet("fireball"+i , fireballs.get(i).getCoords());
+        }
+        editor.putStringSet("coin",coin.getCoords());
+        editor.putInt("health",health.getProgress());
+        editor.putFloat("speed",speed);
+        editor.commit();
+    }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {}
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-//        int action = event.getActionMasked();
-//        switch (action) {
-//            case MotionEvent.ACTION_DOWN:
-//                if (playing){
-//                    play.setVisibility(View.VISIBLE);
-//                }
-//                else {
-//                    play.setVisibility(View.GONE);
-//                }
-//                playing = !playing;
-//                return true;
-//            case MotionEvent.ACTION_UP:
-//                return true;
-//            case MotionEvent.ACTION_MOVE:
-//                return true;
-//            default:
-//                return super.onTouchEvent(event);
-//
-//            //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
-////        }
-//            //return true;
+        if (counting)
+            return false;
+        int action = event.getActionMasked();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                if (playing){
+                    pause();
+                }
+                else {
+                    unpause();
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                return true;
+            default:
+                return super.onTouchEvent(event);
+
+            //Toast.makeText(getApplicationContext(), "pos:"+coin.getY(),Toast.LENGTH_SHORT).show();
 //        }
-        return true;
+            //return true;
+        }
+        //return true;
+    }
+
+    private void countdown() {
+        if (counting)
+            return;
+        count.setVisibility(View.VISIBLE);
+        playing = false;
+        counting = true;
+        new CountDownTimer(3000, 1) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                count.setText(millisUntilFinished/1000 + 1 +"");
+            }
+
+            @Override
+            public void onFinish() {
+                count.setVisibility(View.GONE);
+                playing = true;
+                counting = false;
+            }
+        }.start();
     }
 
 
     @Override
     public void onBackPressed() {
+        //pause();
         timer.cancel();
         startActivity(new Intent(this, HomePage.class));
     }
+
+    @Override
+    public void onPause() {
+        if(health.getProgress()>0)
+            pause();
+        super.onPause();
+    }
+    @Override
+    public void onResume() {
+        unpause();
+        super.onResume();
+    }
+
 }

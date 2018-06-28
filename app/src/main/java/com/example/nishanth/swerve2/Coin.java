@@ -2,6 +2,10 @@ package com.example.nishanth.swerve2;
 
 import android.content.Context;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * Created by nishanth on 6/23/18.
  */
@@ -25,5 +29,12 @@ public class Coin extends android.support.v7.widget.AppCompatImageView {
     @Override
     public void setImageResource(int resId) {
         super.setImageResource(resId);
+    }
+
+    public Set<String> getCoords() {
+        Set<String> set = new TreeSet<>();
+        set.add(getX()+"");
+        set.add(getY()+"");
+        return set;
     }
 }

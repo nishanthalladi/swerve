@@ -4,6 +4,12 @@ import android.content.Context;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * Created by nishanth on 6/22/18.
  */
@@ -27,5 +33,12 @@ public class Fireball extends android.support.v7.widget.AppCompatImageView {
     @Override
     public void setImageResource(int resId) {
         super.setImageResource(resId);
+    }
+
+    public Set<String> getCoords() {
+        Set<String> set = new TreeSet<>();
+        set.add(getX()+"");
+        set.add(getY()+"");
+        return set;
     }
 }

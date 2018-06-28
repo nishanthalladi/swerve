@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "638781914412",
+    "firebase_url": "https://swerve-72ac1.firebaseio.com",
+    "project_id": "swerve-72ac1",
+    "storage_bucket": "swerve-72ac1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638781914412:android:a222ce1b72d51e91",
+        "android_client_info": {
+          "package_name": "com.example.nishanth.swerve2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "638781914412-7ht6h989c1jg0he25f12hq404k2ros10.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMhFwANYCtP2hJS9ESvQ4EdR259oVlCe4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
