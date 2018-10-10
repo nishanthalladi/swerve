@@ -73,4 +73,9 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="banner_ad_unit_id">ca-app-pub-3775150933679718/8228671865</string>
+    <string name="banner_ad_unit_id2">ca-app-pub-3775150933679718/9158610155</string>
+    <!--<string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>-->
+    <!--<string name="banner_ad_unit_id2">ca-app-pub-3940256099942544/6300978111</string>-->
+
 </resources>

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#dfdfdf"
-    tools:context="com.example.nishanth.swerve2.Settings">
+    tools:context="com.fishbrain.nishanth.swerve2.Settings">
 
     <SeekBar
         android:id="@+id/seekBar2"

@@ -1,4 +1,4 @@
-package com.example.nishanth.swerve2;
+package com.fishbrain.nishanth.swerve2;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -22,10 +22,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 

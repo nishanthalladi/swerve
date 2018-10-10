@@ -1,27 +1,71 @@
 {
   "project_info": {
-    "project_number": "638781914412",
-    "firebase_url": "https://swerve-72ac1.firebaseio.com",
-    "project_id": "swerve-72ac1",
-    "storage_bucket": "swerve-72ac1.appspot.com"
+    "project_number": "995266892069",
+    "firebase_url": "https://swerve-5eed5.firebaseio.com",
+    "project_id": "swerve-5eed5",
+    "storage_bucket": "swerve-5eed5.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:638781914412:android:a222ce1b72d51e91",
+        "mobilesdk_app_id": "1:995266892069:android:a222ce1b72d51e91",
         "android_client_info": {
           "package_name": "com.example.nishanth.swerve2"
         }
       },
       "oauth_client": [
         {
-          "client_id": "638781914412-7ht6h989c1jg0he25f12hq404k2ros10.apps.googleusercontent.com",
+          "client_id": "995266892069-l8ed44v7e2cb716283f9ag7gh3be5cbj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nishanth.swerve2",
+            "certificate_hash": "56a52d191bed929c4c55c4947441ef7fff1826a4"
+          }
+        },
+        {
+          "client_id": "995266892069-l8tnvjb4s186o549os50pslkqlu435jo.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCMhFwANYCtP2hJS9ESvQ4EdR259oVlCe4"
+          "current_key": "AIzaSyBxQ8aTnaGz1BWZYkBD8S6FofJQwbqJZHM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "995266892069-l8tnvjb4s186o549os50pslkqlu435jo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995266892069:android:ccd735a5e3e96236",
+        "android_client_info": {
+          "package_name": "com.fishbrain.nishanth.swerve2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "995266892069-l8tnvjb4s186o549os50pslkqlu435jo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxQ8aTnaGz1BWZYkBD8S6FofJQwbqJZHM"
         }
       ],
       "services": {

@@ -1,4 +1,4 @@
-package com.example.nishanth.swerve2;
+package com.fishbrain.nishanth.swerve2;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,27 +11,22 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
