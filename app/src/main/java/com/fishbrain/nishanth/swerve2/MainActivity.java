@@ -42,6 +42,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int score, flashTime;
     private float speed=3.5f;
     final int NUM_FIREBALLS = 5, FLASH=50;
+    final int incAMT = 50;
+    final int decAMT = 50;
+    final int maxHealth = 150;
     private Coin coin;
     private boolean playing = true, counting = false, soundplaying = false;
     private SharedPreferences reader;
@@ -110,8 +113,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         health = findViewById(R.id.progressBar);
         health.bringToFront();
-        health.setMax(250);
-        health.setProgress(250);
+        health.setMax(maxHealth);
+        health.setProgress(maxHealth);
 
         heart = findViewById(R.id.imageView2);
         heart.bringToFront();
@@ -171,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
                 });
             }
-            health.setProgress(health.getProgress()-10);
+            health.setProgress(health.getProgress() - decAMT);
             kenny.setColorFilter(Color.RED);
             flashTime=FLASH;
         }
@@ -186,7 +189,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mp = null;
                 });
             }
-            health.setProgress(health.getProgress()+50);
+            if (health.getProgress() < health.getMax() - incAMT) {
+                health.setProgress(health.getProgress()+ incAMT);
+            }
+            else{
+                health.setProgress(health.getMax());
+            }
             kenny.setColorFilter(Color.GREEN);
             flashTime=FLASH;
         }
@@ -281,8 +289,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             kenny.setY(layout.getMaxHeight()-kenny.getHeight());
         if (kenny.getY()<0)
             kenny.setY(0);
-        kenny.setY(kenny.getY()+sensorEvent.values[1]*2*(reader.getInt("sensitivity", 10)));
-        kenny.setX(kenny.getX()+sensorEvent.values[0]*-2*(reader.getInt("sensitivity", 10)));
+        kenny.setY(kenny.getY()+sensorEvent.values[1]*(reader.getInt("sensitivity", 10)));
+        kenny.setX(kenny.getX()+sensorEvent.values[0]*-1*(reader.getInt("sensitivity", 10)));
     }
 
     public void pause() {

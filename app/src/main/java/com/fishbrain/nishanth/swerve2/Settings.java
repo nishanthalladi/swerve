@@ -178,8 +178,8 @@ public class Settings extends AppCompatActivity implements SensorEventListener {
             kenny.setX(kenny.getX()+sensorEvent.values[0]*-4*bar.getProgress());
         }
         else {
-            kenny.setY(kenny.getY()+sensorEvent.values[1]*2*bar.getProgress());
-            kenny.setX(kenny.getX()+sensorEvent.values[0]*-2*bar.getProgress());
+            kenny.setY(kenny.getY()+sensorEvent.values[1]*bar.getProgress());
+            kenny.setX(kenny.getX()+sensorEvent.values[0]*-1*bar.getProgress());
         }
 
     }
